@@ -6,15 +6,16 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { Database } from '@/lib/database';
-import { Encryption } from '@/lib/encryption';
 import { Send, User } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
-  sender: string;
-  recipient: string;
+  sender_id: string;
+  recipient_id: string;
   message: string;
-  timestamp: number;
+  timestamp: string;
 }
 
 export function Chat() {
@@ -22,78 +23,119 @@ export function Chat() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dbRef = useRef<Database | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Initialize database
-    dbRef.current = new Database();
+    try {
+      dbRef.current = Database.getInstance();
+      setIsConnected(true);
+    } catch (error) {
+      console.error('Database initialization failed:', error);
+      setIsConnected(false);
+      toast({
+        title: 'Connection Error',
+        description: 'Failed to connect to the database. Please check your configuration.',
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
 
-    // Cleanup on unmount
-    return () => {
-      if (dbRef.current) {
-        dbRef.current.destroy();
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (!dbRef.current || !recipient) return;
+
+      try {
+        setLoading(true);
+        const data = await dbRef.current.getMessages(recipient);
+        setMessages(data || []);
+      } catch (error) {
+        console.error('Failed to load messages:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load messages',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
       }
     };
-  }, []);
+
+    loadMessages();
+
+    // Subscribe to new messages
+    if (dbRef.current && recipient) {
+      const unsubscribe = dbRef.current.subscribeToMessages(recipient, (newMessage) => {
+        setMessages((prev) => [...prev, newMessage]);
+      });
+
+      return () => {
+        unsubscribe();
+      };
+    }
+  }, [recipient, toast]);
 
   useEffect(() => {
-    // Scroll to bottom when new messages arrive
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!message.trim() || !recipient.trim() || !dbRef.current) return;
+    if (!message.trim() || !recipient.trim() || !dbRef.current || !isConnected) return;
 
     try {
-      const timestamp = Date.now();
-      const newMessage = {
-        id: timestamp.toString(),
-        sender: 'YOUR_ADDRESS', // Replace with actual sender address
-        recipient,
-        message,
-        timestamp,
-      };
-
-      await dbRef.current.storeMessage(newMessage.sender, newMessage.recipient, newMessage.message);
-      setMessages(prev => [...prev, newMessage]);
+      setLoading(true);
+      const senderAddress = 'YOUR_ADDRESS'; // Replace with connected wallet address
+      await dbRef.current.storeMessage(senderAddress, recipient, message);
       setMessage('');
     } catch (error) {
       console.error('Failed to send message:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send message',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <Card className="bg-gray-800 border-gray-700">
-        <div className="p-4">
-          <div className="flex items-center space-x-2 mb-4">
-            <User className="w-5 h-5 text-gray-400" />
-            <Input
-              placeholder="Enter recipient's wallet address"
-              value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
-              className="bg-gray-700 border-gray-600 text-white"
-            />
-          </div>
+    <Card className="glass-card overflow-hidden">
+      <div className="p-4">
+        <div className="flex items-center space-x-2 mb-4">
+          <User className="w-5 h-5 text-blue-400" />
+          <Input
+            placeholder="Enter recipient's wallet address"
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            className="bg-gray-800/50 border-gray-700 text-white"
+            disabled={loading}
+          />
+        </div>
 
-          <ScrollArea className="h-[400px] mb-4 rounded-lg bg-gray-900 p-4" ref={scrollRef}>
+        <ScrollArea className="h-[400px] mb-4 rounded-lg bg-gray-900/50 p-4" ref={scrollRef}>
+          <AnimatePresence>
             {messages.map((msg) => (
-              <div
+              <motion.div
                 key={msg.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
                 className={`mb-2 ${
-                  msg.sender === 'YOUR_ADDRESS'
+                  msg.sender_id === 'YOUR_ADDRESS'
                     ? 'ml-auto text-right'
                     : 'mr-auto'
                 }`}
               >
                 <div
                   className={`inline-block rounded-lg px-4 py-2 max-w-[70%] ${
-                    msg.sender === 'YOUR_ADDRESS'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-200'
+                    msg.sender_id === 'YOUR_ADDRESS'
+                      ? 'bg-blue-600/80 text-white'
+                      : 'bg-gray-700/80 text-gray-200'
                   }`}
                 >
                   <p className="break-words">{msg.message}</p>
@@ -101,27 +143,29 @@ export function Chat() {
                     {new Date(msg.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </ScrollArea>
+          </AnimatePresence>
+        </ScrollArea>
 
-          <div className="flex items-center space-x-2">
-            <Input
-              placeholder="Type your message..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              className="bg-gray-700 border-gray-600 text-white"
-            />
-            <Button
-              onClick={sendMessage}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </div>
+        <div className="flex items-center space-x-2">
+          <Input
+            placeholder="Type your message..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && !loading && sendMessage()}
+            className="bg-gray-800/50 border-gray-700 text-white"
+            disabled={loading || !isConnected}
+          />
+          <Button
+            onClick={sendMessage}
+            className="bg-blue-600/80 hover:bg-blue-700/80"
+            disabled={loading || !isConnected}
+          >
+            <Send className="w-5 h-5" />
+          </Button>
         </div>
-      </Card>
-    </div>
+      </div>
+    </Card>
   );
 }

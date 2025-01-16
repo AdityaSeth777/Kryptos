@@ -6,66 +6,68 @@ import { motion } from 'framer-motion';
 export function CustomCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isPointer, setIsPointer] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       setPosition({ x: e.clientX, y: e.clientY });
-
       const target = e.target as HTMLElement;
       setIsPointer(window.getComputedStyle(target).cursor === 'pointer');
+      setIsVisible(true);
     };
 
+    const onMouseLeave = () => setIsVisible(false);
+    const onMouseEnter = () => setIsVisible(true);
+
     window.addEventListener('mousemove', onMouseMove);
-    return () => window.removeEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseleave', onMouseLeave);
+    document.addEventListener('mouseenter', onMouseEnter);
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseleave', onMouseLeave);
+      document.removeEventListener('mouseenter', onMouseEnter);
+    };
   }, []);
+
+  if (!isVisible) return null;
 
   return (
     <>
+      <motion.div
+        className="cursor"
+        animate={{
+          x: position.x,
+          y: position.y,
+          scale: isPointer ? 1.5 : 1,
+          opacity: isVisible ? 1 : 0,
+        }}
+        transition={{
+          type: "spring",
+          damping: 35,
+          stiffness: 400,
+          mass: 0.2
+        }}
+        style={{
+          left: -16,
+          top: -16,
+          width: 32,
+          height: 32,
+        }}
+      />
       <motion.div
         className="cursor-dot"
         animate={{
           x: position.x,
           y: position.y,
-          scale: isPointer ? 1.5 : 1,
+          scale: isPointer ? 0.5 : 1,
+          opacity: isVisible ? 1 : 0,
         }}
         transition={{
           type: "spring",
           damping: 50,
           stiffness: 500,
           mass: 0.1
-        }}
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20">
-          <motion.circle
-            cx="10"
-            cy="10"
-            r="5"
-            fill="#64ffda"
-            animate={{
-              scale: isPointer ? [1, 1.2, 1] : 1,
-              opacity: [0.5, 1, 0.5]
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-        </svg>
-      </motion.div>
-      <motion.div
-        className="cursor-ring"
-        animate={{
-          x: position.x,
-          y: position.y,
-          scale: isPointer ? 1.5 : 1,
-          borderColor: isPointer ? "rgba(100, 255, 218, 0.8)" : "rgba(255, 255, 255, 0.8)"
-        }}
-        transition={{
-          type: "spring",
-          damping: 30,
-          stiffness: 200,
-          mass: 0.5
         }}
       />
     </>

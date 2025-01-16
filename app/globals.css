@@ -2,160 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
+/* Base styles */
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --radius: 0.5rem;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-background text-foreground;
     cursor: none;
-    background: linear-gradient(
-      -45deg,
-      #1a1a1a,
-      #2d1b4e,
-      #1b4e4e,
-      #4e1b1b
+    background: radial-gradient(circle at 50% 50%, 
+      rgba(37, 38, 43, 1) 0%, 
+      rgba(20, 21, 26, 1) 100%
     );
-    background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
   }
 }
 
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* Custom Cursor */
-.cursor-dot {
-  mix-blend-mode: difference;
+/* Elegant Cursor */
+.cursor {
   pointer-events: none;
+  position: fixed;
+  padding: 0.3rem;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  mix-blend-mode: difference;
+  transition: transform 0.3s ease;
+  z-index: 9999;
+}
+
+.cursor-dot {
   position: fixed;
   top: 50%;
   left: 50%;
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border-radius: 50%;
   transform: translate(-50%, -50%);
-  z-index: 9999;
-  transition: transform 0.3s ease;
-}
-
-.cursor-ring {
-  position: fixed;
-  pointer-events: none;
-  width: 30px;
-  height: 30px;
-  border: 2px solid rgba(100, 255, 218, 0.8);
-  border-radius: 100px;
-  transform: translate(-50%, -50%);
-  -webkit-transition: all 0.2s ease-out;
-  transition: all 0.2s ease-out;
-  z-index: 9999;
   mix-blend-mode: difference;
+  z-index: 9999;
 }
 
-/* Glass Card Effect */
-.glass-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-}
-
-/* Animated Background Mesh */
-.mesh-gradient {
+/* Animated Background */
+.background-animation {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: -1;
-  opacity: 0.5;
-  background: 
-    radial-gradient(at 0% 0%, rgba(var(--color-1), 0.3) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(var(--color-2), 0.3) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(var(--color-3), 0.3) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(var(--color-4), 0.3) 0px, transparent 50%);
-  --color-1: 103, 232, 249;
-  --color-2: 244, 63, 94;
-  --color-3: 168, 85, 247;
-  --color-4: 34, 197, 94;
-  animation: mesh 20s ease infinite;
+  opacity: 0.15;
 }
 
-@keyframes mesh {
+.background-animation::before,
+.background-animation::after {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: radial-gradient(circle, 
+    rgba(35, 166, 213, 0.15) 0%,
+    rgba(35, 213, 171, 0.15) 25%,
+    rgba(213, 35, 83, 0.15) 50%,
+    rgba(83, 35, 213, 0.15) 75%,
+    rgba(35, 166, 213, 0.15) 100%
+  );
+  animation: rotate 60s linear infinite;
+}
+
+.background-animation::after {
+  animation-delay: -30s;
+}
+
+@keyframes rotate {
   0% {
-    transform: rotate(0deg) scale(1);
-  }
-  50% {
-    transform: rotate(180deg) scale(1.5);
+    transform: rotate(0deg);
   }
   100% {
-    transform: rotate(360deg) scale(1);
+    transform: rotate(360deg);
   }
+}
+
+/* Glass Card Effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Message animations */
+@keyframes messageIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-animation {
+  animation: messageIn 0.3s ease-out forwards;
 }
