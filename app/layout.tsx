@@ -1,6 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { CustomCursor } from '@/components/CustomCursor';
+import { Preloader } from '@/components/Preloader';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -16,7 +18,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Preloader />
+        <CustomCursor />
+        {children}
+      </body>
     </html>
   );
 }

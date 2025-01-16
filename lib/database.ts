@@ -1,72 +1,64 @@
-import Gun from 'gun';
-import 'gun/sea';
-import 'gun/axe';
+import { createClient } from '@supabase/supabase-js';
 
 export class Database {
-  private gun: any;
+  private supabase;
 
   constructor() {
-    // Initialize Gun with relay peers
-    this.gun = Gun({
-      peers: [
-        'https://gun-manhattan.herokuapp.com/gun',
-        'https://gun-us.herokuapp.com/gun',
-      ],
-      localStorage: false // Disable localStorage in Next.js environment
-    });
+    this.supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
   }
 
   async storeMessage(senderId: string, recipientId: string, encryptedMessage: string) {
-    const chatId = this.getChatId(senderId, recipientId);
-    const timestamp = Date.now();
-    
-    return new Promise((resolve, reject) => {
-      try {
-        this.gun.get('chats')
-          .get(chatId)
-          .get(timestamp.toString())
-          .put({
-            sender: senderId,
-            recipient: recipientId,
-            message: encryptedMessage,
-            timestamp,
-          }, (ack: any) => {
-            if (ack.err) {
-              reject(new Error(ack.err));
-            } else {
-              resolve(true);
-            }
-          });
-      } catch (error) {
-        reject(error);
-      }
-    });
+    const { data, error } = await this.supabase
+      .from('messages')
+      .insert([{
+        sender_id: senderId,
+        recipient_id: recipientId,
+        message: encryptedMessage,
+        timestamp: new Date().toISOString()
+      }]);
+
+    if (error) throw error;
+    return data;
   }
 
   subscribeToMessages(senderId: string, recipientId: string, callback: (message: any) => void) {
-    const chatId = this.getChatId(senderId, recipientId);
-    
-    this.gun.get('chats')
-      .get(chatId)
-      .map()
-      .on((message: any, id: string) => {
-        if (message && message.timestamp) {
-          callback({
-            id,
-            ...message,
-          });
+    // Subscribe to new messages
+    const channel = this.supabase
+      .channel('messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `recipient_id=eq.${recipientId}`
+        },
+        (payload) => callback(payload.new)
+      )
+      .subscribe();
+
+    // Fetch existing messages
+    this.supabase
+      .from('messages')
+      .select('*')
+      .or(`sender_id.eq.${senderId},recipient_id.eq.${recipientId}`)
+      .order('timestamp', { ascending: true })
+      .then(({ data }) => {
+        if (data) {
+          data.forEach(callback);
         }
       });
+
+    return () => {
+      channel.unsubscribe();
+    };
   }
 
-  private getChatId(senderId: string, recipientId: string): string {
-    return [senderId, recipientId].sort().join('_');
-  }
-
-  // Clean up method to be called when component unmounts
+  // Clean up method
   destroy() {
-    if (this.gun) {
-      this.gun.off();
-    }
+    this.supabase.removeAllChannels();
   }
 }
