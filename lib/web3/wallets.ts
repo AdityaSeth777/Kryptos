@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { SigningStargateClient } from '@cosmjs/stargate';
 
-export type WalletType = 'metamask' | 'phantom' | 'keplr';
+export type WalletType = 'metamask' | 'phantom' | 'keplr' | 'core';
 
 export interface WalletConnection {
   address: string;
@@ -26,10 +26,33 @@ export async function connectMetaMask(): Promise<WalletConnection> {
     type: 'metamask',
     chainId: Number(await window.ethereum.request({ method: 'eth_chainId' })),
     disconnect: async () => {
-      // MetaMask doesn't have a disconnect method
       return Promise.resolve();
     },
   };
+}
+
+export async function connectCore(): Promise<WalletConnection> {
+  if (typeof window.avalanche === 'undefined') {
+    throw new Error('Core Wallet not installed');
+  }
+
+  try {
+    await window.avalanche.request({ method: 'eth_requestAccounts' });
+    const provider = new ethers.BrowserProvider(window.avalanche);
+    const signer = await provider.getSigner();
+    const address = await signer.getAddress();
+
+    return {
+      address,
+      type: 'core',
+      chainId: Number(await window.avalanche.request({ method: 'eth_chainId' })),
+      disconnect: async () => {
+        return Promise.resolve();
+      },
+    };
+  } catch (error) {
+    throw new Error('Failed to connect to Core Wallet');
+  }
 }
 
 export async function connectPhantom(): Promise<WalletConnection> {
@@ -65,7 +88,6 @@ export async function connectKeplr(): Promise<WalletConnection> {
     address: accounts[0].address,
     type: 'keplr',
     disconnect: async () => {
-      // Keplr doesn't have a disconnect method
       return Promise.resolve();
     },
   };
