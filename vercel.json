@@ -1,8 +1,8 @@
 {
-    "build": {
-      "env": {
-        "NODE_VERSION": "18"
-      }
+  "build": {
+    "env": {
+      "NODE_VERSION": "18"
     }
-  }
-  
+  },
+  "framework": "create-react-app"
+}
