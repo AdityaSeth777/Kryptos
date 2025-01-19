@@ -12,12 +12,11 @@ export default function Login() {
         {/* Interactive panel */}
         <div className="panel">
           {/* Title */}
-          <h1>Whispr</h1>
+          <h1>Kryptos</h1>
 
           {/* Subtitle */}
           <p>
-            Where Web3 gets together to whisper across the blockchain, untamed
-            by centralization
+          Unleash secure and decentralized communication with Kryptos!
           </p>
 
           {/* Login button */}
