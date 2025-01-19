@@ -1,0 +1,154 @@
+@import './normalize.css';
+@import './variables.scss';
+@import './dynamic.scss';
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800&family=Press+Start+2P&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap');
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  border: none;
+
+  box-sizing: border-box;
+  font-weight: normal;
+  -webkit-tap-highlight-color: transparent;
+
+  outline-color: $light;
+  outline-offset: 0.3rem;
+}
+
+// Remove ugly style for links
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+// Stuff that should look like everything else but doesn't
+button,
+input,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+
+  &::placeholder {
+    color: inherit;
+  }
+}
+
+button,
+a,
+input[type='submit'],
+input[type='button'] {
+  cursor: pointer;
+}
+
+//=== Global style
+
+:root {
+  font-size: 18px;
+}
+
+body {
+  font-family: 'Inter', 'Josefin Sans', 'Source Sans Pro', Helvetica, Arial,
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  text-align: center;
+
+  min-height: 100vh;
+
+  color: $text;
+  background: linear-gradient(135deg, $main 0%, $strong 100%);
+}
+
+// Style links
+a {
+  color: $bad;
+  font-weight: 700;
+
+  background-color: $transparent;
+
+  transition: background-color 100ms;
+
+  &:hover {
+    background-color: $strong;
+  }
+}
+
+// Style heading
+h1 {
+  font-family: 'Press Start 2P', display;
+  font-size: 2.5rem;
+}
+
+// Style forms
+button {
+  padding: 0.5rem 1rem;
+  background: $strong;
+  border: none;
+  border-radius: $border-radius;
+
+  // min-width: 5rem;
+  // width: 100%;
+
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  font-weight: 700;
+
+  transition: all 100ms;
+  box-shadow: 0 0.1rem 1px 1px $bad;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    filter: brightness(0.8);
+    translate: 0 0.2rem;
+    box-shadow: none;
+  }
+
+  &.disabled {
+    filter: saturate(0.9);
+    translate: 0;
+    box-shadow: none;
+    color: $main;
+
+    cursor: default;
+  }
+}
+
+#app {
+  min-height: 100vh;
+}
+
+// Query highlights
+em.highlight {
+  font-style: normal;
+
+  background-color: $bad-trans;
+}
+
+// Scrollbars
+
+::-webkit-scrollbar {
+  width: 0.8rem;
+}
+
+::-webkit-scrollbar-track {
+  background: none;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: $background-trans;
+  border-radius: $border-radius;
+}

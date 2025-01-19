@@ -1,0 +1,16 @@
+@import '/src/style/variables.scss';
+
+.new.chat-preview {
+  background-color: $strong-trans;
+  
+  .text {
+    // .address {
+    //   @include crop-address;
+    // }
+    
+    small {
+      color: $good;
+      font-weight: 600;
+    }
+  }
+}

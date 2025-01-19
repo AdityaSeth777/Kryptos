@@ -1,0 +1,28 @@
+@import '/src/style/variables.scss';
+
+.chat-preview {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-start;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  @include preview;
+
+  &.selected {
+    background-color: $strong-trans;
+  }
+
+  .address {
+    @include crop-address;
+  }
+
+  small {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+  }
+}
