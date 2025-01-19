@@ -1,0 +1,86 @@
+@import '/src/style/variables.scss';
+
+#login {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-image: url('/assets/pictures/gradients.jpg');
+  background-position: center;
+  background-size: cover;
+
+  main {
+    display: flex;
+    align-items: center;
+    max-width: 90%;
+
+    background-color: $background-trans;
+
+    padding: 2rem;
+    border-radius: $border-radius;
+
+    gap: 5rem;
+
+    svg {
+      flex: 0.8;
+
+      max-width: 100%;
+      height: 100%;
+
+      @media (max-width: 768px) {
+        display: none;
+      }
+    }
+
+    .panel {
+      flex: 1;
+
+      text-align: left;
+
+      display: flex;
+      gap: 2rem;
+      flex-direction: column;
+
+      h1 {
+        animation: rainbow 3s;
+        animation-iteration-count: infinite;
+        animation-fill-mode: both;
+
+        filter: drop-shadow(3px 3px 0px $good);
+
+        @keyframes rainbow {
+          0% {
+            color: $light;
+          }
+          60% {
+            color: $strong;
+          }
+          100% {
+            color: $light;
+          }
+        }
+      }
+
+      p {
+        line-height: 1.5rem;
+        font-weight: 500;
+
+        font-family: Inter, 'Titillium Web', 'Josefin Sans', 'Source Sans Pro',
+          Helvetica, Arial, sans-serif;
+      }
+
+      button {
+        border-radius: $border-radius;
+      }
+    }
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+
+      max-width: 70%;
+    }
+  }
+}

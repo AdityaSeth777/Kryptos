@@ -1,0 +1,21 @@
+@import '/src/style/variables.scss';
+
+#profile {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 1rem;
+
+  .vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: -1rem;
+    
+    h1 {
+      font-size: 1.1rem;
+      text-align: left;
+      margin-left: 0.3rem;
+    }
+  }
+}

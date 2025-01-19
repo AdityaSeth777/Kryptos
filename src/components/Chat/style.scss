@@ -1,0 +1,195 @@
+@import '/src/style/variables.scss';
+
+#chat {
+  width: 100%;
+  height: 100%;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  font-family: 'Titillium Web', 'Josefin Sans', 'Source Sans Pro', Helvetica;
+
+  .peer {
+    position: absolute;
+    top: 1rem;
+
+    z-index: 50;
+
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    max-width: 70%;
+
+    overflow: hidden;
+
+    background-color: $background2-semi-trans;
+    opacity: 0.5;
+
+    padding: 0.5rem 0.8rem;
+    border-radius: $border-radius;
+
+    small {
+      font-size: 0.9rem;
+      max-width: 80%;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+
+      @include crop-address;
+    }
+  }
+
+  .message-scroller {
+    flex: 1;
+
+    width: 100%;
+    max-width: 100%;
+    overflow: auto;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    padding: 5.5rem 2rem 6rem;
+    scrollbar-gutter: stable;
+
+    .messages {
+      width: 100%;
+
+      display: flex;
+      flex-direction: column;
+
+      gap: 1rem;
+
+      $arrow-size: 0.5rem;
+
+      > * {
+        position: relative;
+
+        padding: 0.6rem 1rem;
+        text-align: left;
+
+        box-shadow: 3px 3px 10px 2px $light-trans;
+
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+
+        &::before {
+          content: '';
+
+          position: absolute;
+          top: 0;
+          z-index: -1;
+
+          width: 0;
+          height: 0;
+
+          border-left: $arrow-size solid transparent;
+          border-right: $arrow-size solid transparent;
+
+          border-top: $arrow-size solid white;
+        }
+
+        small {
+          display: flex;
+          align-items: center;
+          gap: 0.2rem;
+
+          font-weight: 200;
+          color: rgba(255, 255, 255, 0.5);
+        }
+      }
+
+      .incoming {
+        align-self: flex-start;
+        justify-content: flex-start;
+
+        background-color: $strong;
+
+        max-width: 85%;
+
+        border-radius: 0 $border-radius $border-radius $border-radius;
+
+        &::before {
+          left: calc($arrow-size * -1);
+          border-top-color: $strong;
+        }
+      }
+
+      .outgoing {
+        align-self: flex-end;
+        justify-content: flex-end;
+
+        background-color: $main;
+
+        max-width: 80%;
+
+        border-radius: $border-radius 0 $border-radius $border-radius;
+
+        &::before {
+          right: calc($arrow-size * -1);
+          border-top-color: $main;
+        }
+      }
+    }
+  }
+
+  .input-panel {
+    position: absolute;
+
+    bottom: 1rem;
+
+    width: 90%;
+
+    display: flex;
+    align-items: center;
+
+    textarea {
+      width: 100%;
+
+      min-height: 3rem;
+      height: 3rem;
+      max-height: 80vh;
+
+      border-radius: $border-radius;
+
+      resize: none;
+
+      background-color: $background2-semi-trans;
+
+      padding: 0.8rem 1rem;
+      padding-right: 3rem;
+
+      line-height: 1.3rem;
+
+      &::placeholder {
+        font-weight: 200;
+        color: rgba(255, 255, 255, 0.5);
+      }
+    }
+
+    .send {
+      position: absolute;
+
+      cursor: pointer;
+
+      right: 1rem;
+      font-size: 1.5rem;
+
+      user-select: none;
+
+      transition: all 100ms;
+
+      &:hover {
+        translate: 0 -0.1rem;
+        color: $good;
+      }
+    }
+  }
+}

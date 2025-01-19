@@ -1,0 +1,25 @@
+@import '/src/style/variables.scss';
+
+.chats {
+  max-width: 100%;
+  width: min-content;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.no-chats {
+  max-width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+
+  svg {
+    max-width: 50%;
+    height: min-content;
+  }
+}

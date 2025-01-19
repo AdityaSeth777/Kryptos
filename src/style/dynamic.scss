@@ -1,0 +1,23 @@
+@import './variables.scss';
+
+.dynamic-shadow-dom {
+  --dynamic-border-radius: 20px;
+
+  // Text
+  --dynamic-font-family-primary: Inter, 'Titillium Web', 'Josefin Sans',
+    'Source Sans Pro', Helvetica, Arial, sans-serif;
+
+  --dynamic-text-size-body-mini: 11px;
+  --dynamic-text-size-body-small: 12px;
+  --dynamic-text-size-body-normal: 1rem;
+  --dynamic-text-size-button-primary: 1rem;
+  --dynamic-text-size-button-secondary: 12px;
+  --dynamic-text-size-numbers-big: 14px;
+  --dynamic-text-size-numbers-medium: 12px;
+  --dynamic-text-size-numbers-small: 10px;
+  --dynamic-text-size-title: 18px;
+
+  // Button
+  --dynamic-connect-button-background: #0A42CF;
+}
+
