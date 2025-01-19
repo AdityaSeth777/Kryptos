@@ -7,40 +7,40 @@ export function CustomCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isPointer, setIsPointer] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [rotation, setRotation] = useState({ x: 0, y: 0 });
-
-  const springConfig = { damping: 25, stiffness: 300 };
-  const x = useSpring(position.x, springConfig);
-  const y = useSpring(position.y, springConfig);
-  const scale = useSpring(isPointer ? 1.2 : 1, springConfig);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     let lastX = 0;
     let lastY = 0;
+    let rafId: number;
 
     const onMouseMove = (e: MouseEvent) => {
-      // Calculate rotation based on mouse movement
-      const deltaX = e.clientX - lastX;
-      const deltaY = e.clientY - lastY;
+      cancelAnimationFrame(rafId);
       
-      setRotation({
-        x: deltaY * 0.5, // Tilt based on vertical movement
-        y: -deltaX * 0.5, // Tilt based on horizontal movement
+      rafId = requestAnimationFrame(() => {
+        const deltaX = e.clientX - lastX;
+        const deltaY = e.clientY - lastY;
+        
+        lastX = e.clientX;
+        lastY = e.clientY;
+        
+        setPosition({ x: e.clientX, y: e.clientY });
+        const target = e.target as HTMLElement;
+        setIsPointer(window.getComputedStyle(target).cursor === 'pointer');
+        setIsVisible(true);
       });
-
-      lastX = e.clientX;
-      lastY = e.clientY;
-      
-      setPosition({ x: e.clientX, y: e.clientY });
-      const target = e.target as HTMLElement;
-      setIsPointer(window.getComputedStyle(target).cursor === 'pointer');
-      setIsVisible(true);
     };
 
     const onMouseLeave = () => setIsVisible(false);
     const onMouseEnter = () => setIsVisible(true);
 
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mousemove', onMouseMove, { passive: true });
     document.addEventListener('mouseleave', onMouseLeave);
     document.addEventListener('mouseenter', onMouseEnter);
 
@@ -48,10 +48,11 @@ export function CustomCursor() {
       window.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseleave', onMouseLeave);
       document.removeEventListener('mouseenter', onMouseEnter);
+      cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [isMounted]);
 
-  if (!isVisible) return null;
+  if (!isMounted || !isVisible) return null;
 
   return (
     <>
@@ -61,12 +62,12 @@ export function CustomCursor() {
           x: position.x - 20,
           y: position.y - 20,
           scale: isPointer ? 1.2 : 1,
-          rotateX: rotation.x,
-          rotateY: rotation.y,
         }}
-        transition={springConfig}
-        style={{
-          opacity: isVisible ? 1 : 0,
+        transition={{
+          type: "spring",
+          damping: 25,
+          stiffness: 300,
+          mass: 0.5,
         }}
       />
       <motion.div
@@ -76,9 +77,11 @@ export function CustomCursor() {
           y: position.y,
           scale: isPointer ? 0.5 : 1,
         }}
-        transition={springConfig}
-        style={{
-          opacity: isVisible ? 1 : 0,
+        transition={{
+          type: "spring",
+          damping: 25,
+          stiffness: 300,
+          mass: 0.2,
         }}
       />
     </>

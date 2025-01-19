@@ -4,9 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
 import { Database } from '@/lib/database';
-import { Send, User, Check, CheckCheck } from 'lucide-react';
+import { Send, User, Check, CheckCheck, Menu, Search, MoreVertical, Smile, Paperclip, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,26 +29,35 @@ export function Chat() {
   const dbRef = useRef<Database | null>(null);
   const { toast } = useToast();
 
-  // Initialize database and check wallet connection
   useEffect(() => {
     const initDatabase = async () => {
       try {
-        dbRef.current = Database.getInstance();
+        if (!dbRef.current) {
+          dbRef.current = Database.getInstance();
+        }
         
-        // Check if ethereum is available (client-side only)
         if (typeof window !== 'undefined' && window.ethereum?.selectedAddress) {
           const address = window.ethereum.selectedAddress;
           setWalletAddress(address);
-          await dbRef.current.signInWithWallet(address);
+          
+          try {
+            await dbRef.current.signInWithWallet(address);
+            setIsConnected(true);
+          } catch (error: any) {
+            console.error('Auth error:', error);
+            toast({
+              title: 'Connection Error',
+              description: error.message,
+              variant: 'destructive',
+            });
+          }
         }
-        
-        setIsConnected(true);
       } catch (error) {
         console.error('Database initialization failed:', error);
         setIsConnected(false);
         toast({
           title: 'Connection Error',
-          description: 'Failed to connect to the database. Please check your configuration.',
+          description: 'Failed to connect to the database. Please try again.',
           variant: 'destructive',
         });
       }
@@ -57,10 +65,13 @@ export function Chat() {
 
     initDatabase();
 
-    // Listen for account changes
     if (typeof window !== 'undefined' && window.ethereum) {
       window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        setWalletAddress(accounts[0] || null);
+        const newAddress = accounts[0] || null;
+        setWalletAddress(newAddress);
+        if (newAddress) {
+          initDatabase();
+        }
       });
     }
 
@@ -71,10 +82,9 @@ export function Chat() {
     };
   }, [toast]);
 
-  // Load messages
   useEffect(() => {
     const loadMessages = async () => {
-      if (!dbRef.current || !recipient || !walletAddress) return;
+      if (!dbRef.current || !recipient || !walletAddress || !isConnected) return;
 
       try {
         setLoading(true);
@@ -88,7 +98,7 @@ export function Chat() {
         console.error('Failed to load messages:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load messages',
+          description: 'Failed to load messages. Please try again.',
           variant: 'destructive',
         });
       } finally {
@@ -96,26 +106,26 @@ export function Chat() {
       }
     };
 
-    loadMessages();
+    if (isConnected) {
+      loadMessages();
 
-    // Subscribe to new messages
-    if (dbRef.current && walletAddress) {
-      const unsubscribe = dbRef.current.subscribeToMessages(
-        walletAddress,
-        (newMessage) => {
-          setMessages((prev) => [...prev, newMessage].sort((a, b) => 
-            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          ));
-        }
-      );
+      if (dbRef.current && walletAddress) {
+        const unsubscribe = dbRef.current.subscribeToMessages(
+          walletAddress,
+          (newMessage) => {
+            setMessages((prev) => [...prev, newMessage].sort((a, b) => 
+              new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+            ));
+          }
+        );
 
-      return () => {
-        unsubscribe();
-      };
+        return () => {
+          unsubscribe();
+        };
+      }
     }
-  }, [recipient, walletAddress, toast]);
+  }, [recipient, walletAddress, isConnected, toast]);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -160,23 +170,54 @@ export function Chat() {
   };
 
   return (
-    <Card className="glass-card overflow-hidden max-w-4xl mx-auto">
-      <div className="p-4">
-        <div className="flex items-center space-x-2 mb-4 bg-gray-800/30 p-3 rounded-lg">
-          <User className="w-5 h-5 text-blue-400" />
-          <Input
-            placeholder="Enter recipient's wallet address"
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-            className="bg-transparent border-none text-white placeholder-gray-400"
-            disabled={loading || !walletAddress}
-          />
+    <div className="chat-container">
+      <div className="sidebar">
+        <div className="flex items-center justify-between p-4 bg-[#202c33]">
+          <div className="flex items-center space-x-4">
+            <User className="w-10 h-10 text-gray-400" />
+            <div className="text-white">
+              {walletAddress ? (
+                <p className="text-sm">{`${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}</p>
+              ) : (
+                <p className="text-sm">Connect Wallet</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center space-x-4 text-gray-400">
+            <Menu className="w-6 h-6" />
+            <MoreVertical className="w-6 h-6" />
+          </div>
+        </div>
+        <div className="p-2">
+          <div className="flex items-center bg-[#202c33] rounded-lg px-4 py-2">
+            <Search className="w-5 h-5 text-gray-400 mr-2" />
+            <Input
+              placeholder="Search or start new chat"
+              className="bg-transparent border-none text-white placeholder-gray-400"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="chat-area">
+        <div className="flex items-center justify-between p-4 bg-[#202c33]">
+          <div className="flex items-center space-x-4">
+            <User className="w-10 h-10 text-gray-400" />
+            <Input
+              placeholder={walletAddress ? "Enter recipient's wallet address" : "Please connect your wallet first"}
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              className="bg-transparent border-none text-white placeholder-gray-400"
+              disabled={loading || !walletAddress || !isConnected}
+            />
+          </div>
+          <div className="flex items-center space-x-4 text-gray-400">
+            <Search className="w-6 h-6" />
+            <MoreVertical className="w-6 h-6" />
+          </div>
         </div>
 
-        <ScrollArea 
-          className="h-[500px] mb-4 rounded-lg bg-gray-900/30 p-4" 
-          ref={scrollRef}
-        >
+        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           <AnimatePresence>
             {messages.map((msg) => (
               <motion.div
@@ -185,19 +226,10 @@ export function Chat() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
-                className={`mb-2 ${
-                  msg.sender_id === walletAddress?.toLowerCase()
-                    ? 'ml-auto text-right'
-                    : 'mr-auto'
-                }`}
               >
-                <div
-                  className={`inline-block rounded-lg px-4 py-2 max-w-[70%] ${
-                    msg.sender_id === walletAddress?.toLowerCase()
-                      ? 'bg-blue-600/80 text-white rounded-br-none'
-                      : 'bg-gray-700/80 text-gray-200 rounded-bl-none'
-                  }`}
-                >
+                <div className={`message-bubble ${
+                  msg.sender_id === walletAddress?.toLowerCase() ? 'sent' : 'received'
+                }`}>
                   <p className="break-words text-sm">{msg.message}</p>
                   <div className="flex items-center justify-end space-x-1 mt-1">
                     <span className="text-xs opacity-75">
@@ -219,26 +251,39 @@ export function Chat() {
           </AnimatePresence>
         </ScrollArea>
 
-        <div className="flex items-center space-x-2 bg-gray-800/30 p-2 rounded-lg">
-          <Input
-            placeholder={walletAddress 
-              ? "Type your message..." 
-              : "Please connect your wallet first"}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && !loading && sendMessage()}
-            className="bg-transparent border-none text-white placeholder-gray-400"
-            disabled={loading || !isConnected || !walletAddress}
-          />
-          <Button
-            onClick={sendMessage}
-            className="bg-blue-600/80 hover:bg-blue-700/80"
-            disabled={loading || !isConnected || !walletAddress}
-          >
-            <Send className="w-5 h-5" />
-          </Button>
+        <div className="message-input">
+          <div className="flex items-center space-x-4">
+            <Smile className="w-6 h-6 text-gray-400" />
+            <Paperclip className="w-6 h-6 text-gray-400" />
+            <Input
+              placeholder={walletAddress && isConnected
+                ? "Type a message" 
+                : "Please connect your wallet first"}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && !loading && sendMessage()}
+              className="bg-[#2a3942] border-none text-white placeholder-gray-400 rounded-lg"
+              disabled={loading || !isConnected || !walletAddress}
+            />
+            {message.trim() ? (
+              <Button
+                onClick={sendMessage}
+                className="bg-[#00a884] hover:bg-[#00946f] rounded-full w-10 h-10 p-0 flex items-center justify-center"
+                disabled={loading || !isConnected || !walletAddress}
+              >
+                <Send className="w-5 h-5" />
+              </Button>
+            ) : (
+              <Button
+                className="bg-[#00a884] hover:bg-[#00946f] rounded-full w-10 h-10 p-0 flex items-center justify-center"
+                disabled={loading || !isConnected || !walletAddress}
+              >
+                <Mic className="w-5 h-5" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
