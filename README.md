@@ -1,6 +1,6 @@
 # Kryptos: Blockchain-Based Messaging Platform
 
-![Kryptos Logo Placeholder](./logo.jpeg)
+![Kryptos Logo Placeholder](./src/assets/pictures/logo.jpeg)
 
 Welcome to **Kryptos**, the revolutionary messaging platform powered by blockchain technology! With support for multiple crypto wallets such as Phantom, Metamask, Coinbase, and more, Kryptos ensures secure, decentralized communication like never before.
 
@@ -50,6 +50,12 @@ Transparency is our priority! Currently, we're addressing an issue where message
 - **99.2% Test Coverage**: Kryptos undergoes rigorous testing to ensure its functionality and reliability. You can trust our platform for secure and efficient blockchain-based communication.
 
 ---
+
+## Live Deployment
+
+Click on the below image to visit the live site or click here: [Kryptos](https://kryptos-adi.vercel.app/)
+
+![https://kryptos-adi.vercel.app/](./src/assets/pictures/cover.png) 
 
 ## Getting Started
 
