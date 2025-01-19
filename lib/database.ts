@@ -22,44 +22,88 @@ export class Database {
     return Database.instance;
   }
 
-  async storeMessage(senderId: string, recipientId: string, message: string) {
-    const { data, error } = await this.supabase
-      .from('messages')
-      .insert([
-        {
-          sender_id: senderId,
-          recipient_id: recipientId,
-          message: message,
-          timestamp: new Date().toISOString(),
-        },
-      ])
-      .select();
+  async signInWithWallet(walletAddress: string) {
+    try {
+      // Sign in with wallet address as email (since we need an email format)
+      const { data, error } = await this.supabase.auth.signInWithPassword({
+        email: `${walletAddress.toLowerCase()}@web3chat.com`,
+        password: walletAddress, // Using wallet address as password
+      });
 
-    if (error) {
-      console.error('Error storing message:', error);
+      if (error) {
+        // If user doesn't exist, sign up
+        if (error.message.includes('Invalid login credentials')) {
+          const { data: signUpData, error: signUpError } = await this.supabase.auth.signUp({
+            email: `${walletAddress.toLowerCase()}@web3chat.com`,
+            password: walletAddress,
+          });
+
+          if (signUpError) throw signUpError;
+          return signUpData;
+        }
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Auth error:', error);
       throw error;
     }
+  }
 
-    return data;
+  async storeMessage(senderId: string, recipientId: string, message: string) {
+    try {
+      // Ensure sender is authenticated
+      const { data: { session } } = await this.supabase.auth.getSession();
+      if (!session) {
+        await this.signInWithWallet(senderId);
+      }
+
+      const { data, error } = await this.supabase
+        .from('messages')
+        .insert([
+          {
+            sender_id: senderId.toLowerCase(),
+            recipient_id: recipientId.toLowerCase(),
+            message,
+            timestamp: new Date().toISOString(),
+          },
+        ])
+        .select();
+
+      if (error) {
+        console.error('Error storing message:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in storeMessage:', error);
+      throw error;
+    }
   }
 
   async getMessages(userId: string) {
-    const { data, error } = await this.supabase
-      .from('messages')
-      .select('*')
-      .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
-      .order('timestamp', { ascending: true });
+    try {
+      const { data, error } = await this.supabase
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${userId.toLowerCase()},recipient_id.eq.${userId.toLowerCase()}`)
+        .order('timestamp', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching messages:', error);
+      if (error) {
+        console.error('Error fetching messages:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in getMessages:', error);
       throw error;
     }
-
-    return data;
   }
 
   subscribeToMessages(userId: string, callback: (message: any) => void) {
-    // Subscribe to new messages
     const channel = this.supabase
       .channel('messages')
       .on(
@@ -68,7 +112,7 @@ export class Database {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `recipient_id=eq.${userId}`,
+          filter: `recipient_id=eq.${userId.toLowerCase()}`,
         },
         (payload) => callback(payload.new)
       )
@@ -77,6 +121,10 @@ export class Database {
     return () => {
       channel.unsubscribe();
     };
+  }
+
+  async signOut() {
+    await this.supabase.auth.signOut();
   }
 
   destroy() {
