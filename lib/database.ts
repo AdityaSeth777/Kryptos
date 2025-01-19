@@ -24,24 +24,29 @@ export class Database {
 
   async signInWithWallet(walletAddress: string) {
     try {
-      // Sign in with wallet address as email (since we need an email format)
-      const { data, error } = await this.supabase.auth.signInWithPassword({
-        email: `${walletAddress.toLowerCase()}@web3chat.com`,
-        password: walletAddress, // Using wallet address as password
+      const email = `${walletAddress.toLowerCase()}@web3chat.com`;
+      const password = `${walletAddress.toLowerCase()}_secret`;
+
+      // Try to sign in first
+      const { data, error: signInError } = await this.supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      if (error) {
-        // If user doesn't exist, sign up
-        if (error.message.includes('Invalid login credentials')) {
-          const { data: signUpData, error: signUpError } = await this.supabase.auth.signUp({
-            email: `${walletAddress.toLowerCase()}@web3chat.com`,
-            password: walletAddress,
-          });
+      // If sign in fails, create a new account
+      if (signInError) {
+        const { data: signUpData, error: signUpError } = await this.supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              wallet_address: walletAddress.toLowerCase(),
+            },
+          },
+        });
 
-          if (signUpError) throw signUpError;
-          return signUpData;
-        }
-        throw error;
+        if (signUpError) throw signUpError;
+        return signUpData;
       }
 
       return data;
@@ -85,10 +90,11 @@ export class Database {
 
   async getMessages(userId: string) {
     try {
+      const lowerId = userId.toLowerCase();
       const { data, error } = await this.supabase
         .from('messages')
         .select('*')
-        .or(`sender_id.eq.${userId.toLowerCase()},recipient_id.eq.${userId.toLowerCase()}`)
+        .or(`sender_id.eq.${lowerId},recipient_id.eq.${lowerId}`)
         .order('timestamp', { ascending: true });
 
       if (error) {
@@ -104,6 +110,7 @@ export class Database {
   }
 
   subscribeToMessages(userId: string, callback: (message: any) => void) {
+    const lowerId = userId.toLowerCase();
     const channel = this.supabase
       .channel('messages')
       .on(
@@ -112,7 +119,7 @@ export class Database {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `recipient_id=eq.${userId.toLowerCase()}`,
+          filter: `recipient_id=eq.${lowerId}`,
         },
         (payload) => callback(payload.new)
       )

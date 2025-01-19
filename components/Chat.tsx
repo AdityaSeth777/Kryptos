@@ -25,18 +25,22 @@ export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dbRef = useRef<Database | null>(null);
   const { toast } = useToast();
 
+  // Initialize database and check wallet connection
   useEffect(() => {
     const initDatabase = async () => {
       try {
         dbRef.current = Database.getInstance();
         
-        // If wallet is connected, sign in with wallet address
-        if (window.ethereum?.selectedAddress) {
-          await dbRef.current.signInWithWallet(window.ethereum.selectedAddress);
+        // Check if ethereum is available (client-side only)
+        if (typeof window !== 'undefined' && window.ethereum?.selectedAddress) {
+          const address = window.ethereum.selectedAddress;
+          setWalletAddress(address);
+          await dbRef.current.signInWithWallet(address);
         }
         
         setIsConnected(true);
@@ -52,15 +56,29 @@ export function Chat() {
     };
 
     initDatabase();
+
+    // Listen for account changes
+    if (typeof window !== 'undefined' && window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+        setWalletAddress(accounts[0] || null);
+      });
+    }
+
+    return () => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', () => {});
+      }
+    };
   }, [toast]);
 
+  // Load messages
   useEffect(() => {
     const loadMessages = async () => {
-      if (!dbRef.current || !recipient || !window.ethereum?.selectedAddress) return;
+      if (!dbRef.current || !recipient || !walletAddress) return;
 
       try {
         setLoading(true);
-        const data = await dbRef.current.getMessages(window.ethereum.selectedAddress);
+        const data = await dbRef.current.getMessages(walletAddress);
         if (data) {
           setMessages(data.sort((a, b) => 
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
@@ -80,9 +98,10 @@ export function Chat() {
 
     loadMessages();
 
-    if (dbRef.current && window.ethereum?.selectedAddress) {
+    // Subscribe to new messages
+    if (dbRef.current && walletAddress) {
       const unsubscribe = dbRef.current.subscribeToMessages(
-        window.ethereum.selectedAddress,
+        walletAddress,
         (newMessage) => {
           setMessages((prev) => [...prev, newMessage].sort((a, b) => 
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
@@ -94,8 +113,9 @@ export function Chat() {
         unsubscribe();
       };
     }
-  }, [recipient, toast]);
+  }, [recipient, walletAddress, toast]);
 
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -103,7 +123,7 @@ export function Chat() {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!message.trim() || !recipient.trim() || !dbRef.current || !isConnected || !window.ethereum?.selectedAddress) {
+    if (!message.trim() || !recipient.trim() || !dbRef.current || !isConnected || !walletAddress) {
       toast({
         title: 'Error',
         description: 'Please connect your wallet and enter a recipient address',
@@ -115,7 +135,7 @@ export function Chat() {
     try {
       setLoading(true);
       await dbRef.current.storeMessage(
-        window.ethereum.selectedAddress,
+        walletAddress,
         recipient,
         message
       );
@@ -149,7 +169,7 @@ export function Chat() {
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
             className="bg-transparent border-none text-white placeholder-gray-400"
-            disabled={loading || !window.ethereum?.selectedAddress}
+            disabled={loading || !walletAddress}
           />
         </div>
 
@@ -166,14 +186,14 @@ export function Chat() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
                 className={`mb-2 ${
-                  msg.sender_id === window.ethereum?.selectedAddress?.toLowerCase()
+                  msg.sender_id === walletAddress?.toLowerCase()
                     ? 'ml-auto text-right'
                     : 'mr-auto'
                 }`}
               >
                 <div
                   className={`inline-block rounded-lg px-4 py-2 max-w-[70%] ${
-                    msg.sender_id === window.ethereum?.selectedAddress?.toLowerCase()
+                    msg.sender_id === walletAddress?.toLowerCase()
                       ? 'bg-blue-600/80 text-white rounded-br-none'
                       : 'bg-gray-700/80 text-gray-200 rounded-bl-none'
                   }`}
@@ -183,7 +203,7 @@ export function Chat() {
                     <span className="text-xs opacity-75">
                       {formatTime(msg.timestamp)}
                     </span>
-                    {msg.sender_id === window.ethereum?.selectedAddress?.toLowerCase() && (
+                    {msg.sender_id === walletAddress?.toLowerCase() && (
                       <span className="text-xs">
                         {msg.read ? (
                           <CheckCheck className="w-3 h-3 text-blue-300" />
@@ -201,19 +221,19 @@ export function Chat() {
 
         <div className="flex items-center space-x-2 bg-gray-800/30 p-2 rounded-lg">
           <Input
-            placeholder={window.ethereum?.selectedAddress 
+            placeholder={walletAddress 
               ? "Type your message..." 
               : "Please connect your wallet first"}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && !loading && sendMessage()}
             className="bg-transparent border-none text-white placeholder-gray-400"
-            disabled={loading || !isConnected || !window.ethereum?.selectedAddress}
+            disabled={loading || !isConnected || !walletAddress}
           />
           <Button
             onClick={sendMessage}
             className="bg-blue-600/80 hover:bg-blue-700/80"
-            disabled={loading || !isConnected || !window.ethereum?.selectedAddress}
+            disabled={loading || !isConnected || !walletAddress}
           >
             <Send className="w-5 h-5" />
           </Button>
