@@ -1,155 +1,128 @@
-# Web3 Encrypted Chat Application
+# Web3 Chat Application
 
-A decentralized, encrypted chat application built with Next.js, Supabase, and Web3 wallet integration.
+A decentralized chat application built with Next.js, MongoDB, and MetaMask wallet integration.
 
 ## Features
 
-- 🔒 End-to-end encryption using libsodium
-- 👛 Multi-wallet support (MetaMask, Phantom, Keplr)
-- 💬 Real-time messaging using Supabase
-- 🎨 Beautiful UI with Tailwind CSS and shadcn/ui
-- 📱 Responsive design
-- 🌐 Secure data storage with Row Level Security
+- Secure wallet-based authentication with MetaMask
+- Real-time messaging
+- Message persistence with MongoDB
+- Beautiful UI with Tailwind CSS
+- Responsive design
+- Message read receipts
 
 ## Prerequisites
 
-Before you begin, ensure you have installed:
+Before you begin, ensure you have:
 
 - [Node.js](https://nodejs.org/) (v18 or higher)
-- [npm](https://www.npmjs.com/) (usually comes with Node.js)
-- One or more of the following wallets:
-  - [MetaMask](https://metamask.io/) for Ethereum
-  - [Phantom](https://phantom.app/) for Solana
-  - [Keplr](https://www.keplr.app/) for Cosmos
+- [MetaMask](https://metamask.io/) browser extension
+- MongoDB database (we use MongoDB Atlas)
 
-## Local Development
+## Setup Instructions
 
-1. Clone the repository:
+1. Clone and install dependencies:
    ```bash
    git clone <repository-url>
    cd web3-chat
-   ```
-
-2. Install dependencies:
-   ```bash
    npm install
    ```
 
-3. Set up Supabase:
-   - Create a new project at [Supabase](https://supabase.com)
-   - Copy your project URL and anon key
-   - Create a `.env.local` file based on `.env.example`
-   - Add your Supabase credentials to `.env.local`
+2. Set up MongoDB Atlas:
+   - Create a free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register)
+   - Create a new project
+   - Build a new cluster (free tier is fine)
+   - Click "Connect" on your cluster
+   - Add your IP address to the IP Access List
+   - Create a database user with read/write permissions
+   - Choose "Connect your application"
+   - Copy the connection string
+
+3. Configure Environment:
+   - Copy `.env.example` to `.env.local`
+   - Replace the MongoDB URI with your connection string
+   - Update the database name in the URI if different from 'web3chat'
 
 4. Start the development server:
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000)
 
-## Building for Production
+## MongoDB Setup Details
 
-1. Create a production build:
-   ```bash
-   npm run build
-   ```
+1. Create Database User:
+   - In MongoDB Atlas, go to Database Access
+   - Click "Add New Database User"
+   - Choose "Password" authentication
+   - Set username and password
+   - Select "Read and write to any database"
+   - Add user
 
-2. Test the production build locally:
-   ```bash
-   npm start
-   ```
+2. Network Access:
+   - Go to Network Access
+   - Click "Add IP Address"
+   - Add your current IP or use "Allow Access from Anywhere" (0.0.0.0/0)
 
-## Deployment Options
+3. Get Connection String:
+   - Go to Clusters
+   - Click "Connect"
+   - Choose "Connect your application"
+   - Copy the connection string
+   - Replace `<password>` with your database user's password
+   - Add database name: `web3chat` after the cluster address
 
-### 1. Deploy to Netlify
-
-The easiest way to deploy this application is through Netlify:
-
-1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
-2. Sign up for a [Netlify account](https://www.netlify.com/)
-3. Click "New site from Git"
-4. Choose your repository
-5. Build settings:
-   - Build command: `npm run build`
-   - Publish directory: `out`
-6. Environment variables:
-   - Add your Supabase credentials as environment variables
-   - NEXT_PUBLIC_SUPABASE_URL
-   - NEXT_PUBLIC_SUPABASE_ANON_KEY
-7. Click "Deploy site"
-
-### 2. Deploy to Vercel
-
-1. Push your code to a Git repository
-2. Sign up for a [Vercel account](https://vercel.com/)
-3. Import your repository
-4. Environment variables:
-   - Add your Supabase credentials in the Vercel dashboard
-5. Click "Deploy"
-
-### 3. Self-hosting
-
-To self-host on your own server:
-
-1. Build the application:
-   ```bash
-   npm run build
-   ```
-
-2. The static files will be in the `out` directory
-
-3. Deploy these files to your web server (Apache, Nginx, etc.)
-
-4. Set up environment variables on your server
-
-## Environment Variables
-
-Required environment variables:
-
-- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+Example URI format:
+```
+mongodb+srv://username:password@cluster.mongodb.net/web3chat?retryWrites=true&w=majority
+```
 
 ## Troubleshooting
 
-### Common Issues
+1. **Connection Errors**
+   - Verify MongoDB URI in `.env.local`
+   - Check if IP is whitelisted in MongoDB Atlas
+   - Ensure database user credentials are correct
+   - Verify the database name in the URI
 
-1. **Wallet Connection Issues**
-   - Ensure your wallet extension is installed and unlocked
-   - Check if you're on the correct network
+2. **Message Send/Receive Issues**
+   - Check browser console for errors
+   - Verify MetaMask is connected
+   - Ensure recipient address is correct
+   - Check MongoDB Atlas logs for any issues
 
-2. **Message Not Sending**
-   - Verify your internet connection
-   - Check if Supabase is properly configured
-   - Make sure both sender and recipient addresses are correct
+3. **MetaMask Issues**
+   - Make sure MetaMask is installed and unlocked
+   - Connect to the correct network
+   - Check if the account has sufficient funds for gas
 
-3. **Build Errors**
-   - Clear the `.next` directory: `rm -rf .next`
-   - Delete `node_modules` and reinstall: `rm -rf node_modules && npm install`
+## Development
 
-### Database Issues
+### API Routes
 
-If you experience issues with Supabase:
+- `GET /api/messages?userId=<address>`
+  - Fetches messages for a wallet address
+  - Returns both sent and received messages
 
-1. Verify your environment variables are correctly set
-2. Check the Supabase dashboard for any service disruptions
-3. Ensure your database tables and policies are properly set up
+- `POST /api/messages`
+  - Sends a new message
+  - Required body: `{ senderId, recipientId, message }`
 
-## Security Considerations
+### Database Schema
 
-1. All messages are end-to-end encrypted using libsodium
-2. Wallet connections are secure and don't expose private keys
-3. Row Level Security ensures users can only access their own messages
-4. Messages are stored securely in Supabase with proper access controls
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit your changes: `git commit -m 'Add feature'`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request
+Messages collection:
+```typescript
+interface Message {
+  _id: string;
+  senderId: string;
+  recipientId: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+}
+```
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License

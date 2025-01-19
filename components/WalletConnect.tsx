@@ -1,21 +1,36 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Wallet } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 
 export function WalletConnect() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const checkWallet = async () => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts[0]) {
+            setWalletAddress(accounts[0]);
+          }
+        } catch (error) {
+          console.error('Failed to get wallet:', error);
+        }
+      }
+    };
+
+    checkWallet();
+  }, []);
+
   const connectWallet = async () => {
     if (typeof window === 'undefined' || !window.ethereum) {
       toast({
-        title: 'Error',
-        description: 'Please install MetaMask',
+        title: 'MetaMask Required',
+        description: 'Please install MetaMask to use this application',
         variant: 'destructive',
       });
       return;
@@ -34,7 +49,7 @@ export function WalletConnect() {
         });
       }
     } catch (error) {
-      console.error('Failed to connect wallet:', error);
+      console.error('Failed to connect:', error);
       toast({
         title: 'Connection Failed',
         description: 'Failed to connect wallet',
@@ -51,40 +66,30 @@ export function WalletConnect() {
     });
   };
 
-  if (walletAddress) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-center space-x-4 mb-8"
-      >
-        <Card className="bg-gray-800/50 backdrop-blur-sm border-gray-700 px-4 py-2 flex items-center">
-          <Wallet className="w-5 h-5 mr-2 text-primary" />
-          <span className="text-sm text-primary">
+  return (
+    <div className="container mx-auto p-4 flex justify-end">
+      {walletAddress ? (
+        <div className="flex items-center space-x-4">
+          <span className="text-gray-300">
             {`${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}
           </span>
-        </Card>
+          <Button
+            variant="destructive"
+            onClick={disconnect}
+            className="bg-red-500/80 hover:bg-red-600/80"
+          >
+            Disconnect
+          </Button>
+        </div>
+      ) : (
         <Button
-          variant="destructive"
-          onClick={disconnect}
-          className="bg-red-500/80 hover:bg-red-600/80 backdrop-blur-sm"
+          onClick={connectWallet}
+          className="bg-blue-600 hover:bg-blue-700"
         >
-          Disconnect
+          <Wallet className="w-5 h-5 mr-2" />
+          Connect Wallet
         </Button>
-      </motion.div>
-    );
-  }
-
-  return (
-    <div className="flex justify-center mb-8">
-      <Button
-        variant="outline"
-        className="bg-gray-800/50 backdrop-blur-sm border-gray-700 hover:bg-gray-700/50"
-        onClick={connectWallet}
-      >
-        <Wallet className="w-5 h-5 mr-2" />
-        Connect Wallet
-      </Button>
+      )}
     </div>
   );
 }
