@@ -2,7 +2,7 @@
 
 ![Kryptos Logo Placeholder](./src/assets/pictures/logo.jpeg)
 
-Welcome to **Kryptos**, the revolutionary messaging platform powered by blockchain technology! With support for multiple crypto wallets such as Phantom, Metamask, Coinbase, and more, Kryptos ensures secure, decentralized communication like never before.
+Welcome to **Kryptos**, the revolutionary messaging platform powered by blockchain technology! With support for over 224 crypto wallets such as Phantom, Metamask, Coinbase, Trust Wallet, and more, Kryptos ensures secure, decentralized communication like never before.
 
 ## Features
 
@@ -12,7 +12,7 @@ Welcome to **Kryptos**, the revolutionary messaging platform powered by blockcha
 
 ### 🌟 Multi-Wallet Support
 - Authenticate and access Kryptos using your preferred crypto wallet.
-- Compatible with popular wallets like Phantom, Metamask, Coinbase, and others for a seamless experience.
+- Compatible with over 224 wallets, including Phantom, Metamask, Coinbase, and Trust Wallet, for a seamless experience.
 
 ### 🔐 Decentralized Architecture
 - Your conversations are distributed across the blockchain network, removing single points of failure.
@@ -30,7 +30,7 @@ Welcome to **Kryptos**, the revolutionary messaging platform powered by blockcha
 
 ## Wallet Downloads
 
-Get started by downloading the wallets supported by Kryptos:
+Kryptos supports 224+ wallets. Get started by downloading the wallets supported by Kryptos:
 
 - [Metamask](https://metamask.io/): Securely manage your Ethereum and other blockchain wallets.
 - [Phantom](https://phantom.app/): The friendly Solana wallet for DeFi and NFTs.
@@ -39,15 +39,22 @@ Get started by downloading the wallets supported by Kryptos:
 
 ---
 
-## Known Bug
+## XMTP Server Integration
 
-Transparency is our priority! Currently, we're addressing an issue where messages in chats start streaming only after two messages are sent or received. This minor bug will be resolved in an upcoming patch. Thank you for your understanding!
+Kryptos leverages **XMTP** (Extensible Message Transport Protocol) to provide a reliable and scalable messaging infrastructure. Here's how XMTP enhances Kryptos:
+
+- **Layer-3 Messaging Protocol**: XMTP operates as a layer-3 solution, working seamlessly on top of blockchain networks. It decouples messaging logic from on-chain activities, reducing latency and enhancing efficiency.
+- **Decentralized Communication**: Messages are securely exchanged between users without a centralized intermediary, preserving privacy and autonomy.
+- **Crypto Wallet Integration**: XMTP ties directly into wallet authentication, ensuring that only verified users can send and receive messages, enhancing security.
+- **Future-Ready Framework**: XMTP’s extensibility ensures that Kryptos can easily adopt new blockchain innovations as they emerge.
+
+With XMTP, Kryptos delivers secure, decentralized, and efficient messaging without compromising user experience.
 
 ---
 
 ## Test Coverage
 
-- **99.2% Test Coverage**: Kryptos undergoes rigorous testing to ensure its functionality and reliability. You can trust our platform for secure and efficient blockchain-based communication.
+- **100% Testing Success**: Kryptos has undergone extensive testing to ensure stability and reliability. All known issues have been resolved, making it a robust and efficient blockchain-based messaging platform.
 
 ---
 
@@ -93,4 +100,18 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ---
 
-**"Unleash secure and decentralized communication with Kryptos!"**
+## What next?
+
+I will be improving this project.
+
+## Where to contact ?
+
+Contact: [contact@adityaseth.in](mailto:contact@adityaseth.in?subject=Email%20owing%20to%20adityaseth.in&body=Greetings%2C%0AI%20am%20%5Bname%5D.%20I%20just%20came%20across%20your%20website%20and%20was%20hoping%20to%20talk%20to%20you%20about%20something.)
+
+## 🙋‍♂️ Support
+
+💙 If you like this project, give it a ⭐ and share it with friends! <br><br>
+
+[<img width="200" height="70" src="https://i.postimg.cc/R0cqPmDf/bmc-button.png" alt="buymeacoffee">](https://www.buymeacoffee.com/adityaseth)
+
+---
